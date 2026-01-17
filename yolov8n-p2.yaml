@@ -1,0 +1,42 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# 棒球專用 P2 特規版 (去除 P5 層)
+# 適合：極小目標偵測 (Small Object Detection) + 1280px 輸入
+
+# Parameters
+nc: 1  # 🔴 請改成你的類別數量 (例如只有棒球就是 1，如果有球+棒就是 2)
+scales: # model compound scaling constants, i.e. 'model=yolov8n.yaml'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024] 
+
+# Backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]  # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]  # 1-P2/4  <-- P2 特徵層
+  - [-1, 3, C2f, [128, True]]
+  - [-1, 1, Conv, [256, 3, 2]]  # 3-P3/8
+  - [-1, 6, C2f, [256, True]]
+  - [-1, 1, Conv, [512, 3, 2]]  # 5-P4/16
+  - [-1, 6, C2f, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32 (雖然 Backbone 還是會算，但 Head 不用它)
+  - [-1, 3, C2f, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5]]  # 9
+
+# Head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
+  - [-1, 3, C2f, [512]]  # 12
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
+  - [-1, 3, C2f, [256]]  # 15 (P3/8-small)
+
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
+  - [[-1, 2], 1, Concat, [1]]  # cat backbone P2
+  - [-1, 3, C2f, [128]]  # 18 (P2/4-xsmall) <-- 加上這個 P2
+
+  # Detect layer:
+  # 這裡只接 [18, 15, 12] (對應 P2, P3, P4)
+  # ❌ 我們移除了 P5，讓模型專心抓小球
+  - [[18, 15, 12], 1, Detect, [nc]]

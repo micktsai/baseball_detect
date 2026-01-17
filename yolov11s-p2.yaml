@@ -1,0 +1,49 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLO11n-P2-no-P5 (Small Object Optimized)
+
+# Parameters
+nc: 1
+
+scales:
+  # [depth, width, max_channels]
+  s: [0.50, 0.50, 1024]
+
+# Backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]        # 0 - P1/2
+  - [-1, 1, Conv, [128, 3, 2]]       # 1 - P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]# 2 - P2/4
+
+  - [-1, 1, Conv, [256, 3, 2]]       # 3 - P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]# 4 - P3/8
+
+  - [-1, 1, Conv, [512, 3, 2]]       # 5 - P4/16
+  - [-1, 2, C3k2, [512, True, 0.25]] # 6 - P4/16
+
+  # High-level context on P4
+  - [-1, 1, SPPF, [512, 5]]          # 7 - P4
+  - [-1, 2, C2PSA, [512]]            # 8 - P4
+
+# Head (P2, P3, P4)
+head:
+  # -------- FPN --------
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 9  P4 -> P3
+  - [[-1, 4], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, False, 0.25]]           # 11 P3
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 12 P3 -> P2
+  - [[-1, 2], 1, Concat, [1]]
+  - [-1, 2, C3k2, [256, False, 0.25]]           # 14 P2
+
+  # -------- PAN --------
+  - [-1, 1, Conv, [256, 3, 2]]                  # 15 P2 -> P3
+  - [[-1, 11], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, False, 0.25]]           # 17 P3
+
+  - [-1, 1, Conv, [512, 3, 2]]                  # 18 P3 -> P4
+  - [[-1, 8], 1, Concat, [1]]
+  - [-1, 2, C3k2, [512, True, 0.25]]            # 20 P4
+
+  # -------- Detect --------
+  - [[14, 17, 20], 1, Detect, [nc]]
