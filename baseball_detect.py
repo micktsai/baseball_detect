@@ -7,6 +7,10 @@ import albumentations as A
 from roboflow import Roboflow
 from ultralytics import YOLO
 import torch
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # ===============================
 # [NEW] 移除過多無球負樣本
@@ -146,7 +150,7 @@ def main():
     # ===============================
     # 1. Roboflow 下載資料
     # ===============================
-    rf = Roboflow(api_key="pFQ163xVxcPsuZbp3aNs") 
+    rf = Roboflow(api_key=os.getenv("ROBOFLOW_API_KEY")) 
     project = rf.workspace("mickshelbytsai").project("pitch-tracking-sgse6")
     version = project.version(2)
     dataset = version.download("yolov8")

@@ -4,3 +4,8 @@ pitch-*
 datasets
 venv*
 export
+models
+results
+videos
+.DS_Store
+.env
