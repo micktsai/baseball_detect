@@ -32,6 +32,8 @@ BOX_COLOR = (0, 0, 255)    # Red
 STATE_SEARCH = 0
 STATE_TRACK = 1
 
+DIST_THRESHOLD = 30
+
 def get_video_path():
     """解析 CLI 參數並回傳影片路徑"""
     parser = argparse.ArgumentParser(description="Baseball Ball Detection & Tracking")
@@ -301,7 +303,7 @@ def process_video(video_path):
                     # 注意：在 SEARCH 模式下 hand_center_x 是有定義的
                     dist_to_hand = ((current_ball_x - hand_center_x)**2 + (current_ball_y - hand_center_y)**2)**0.5
                     
-                    if dist_to_hand < 15: # User suggested 15px logic check from edit, previously was 5px
+                    if dist_to_hand < DIST_THRESHOLD: # User suggested 15px logic check from edit, previously was 5px
                          # 球離手太近，視為還在手中
                         print(f"Frame {frame_idx}: Ball close to hand ({dist_to_hand:.1f}px). Staying in SEARCH.")
                         # 保持不變，繼續搜尋
