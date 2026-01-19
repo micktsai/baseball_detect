@@ -1,7 +1,7 @@
 Detect*
 runs
 pitch-*
-datasets
+dataset*
 venv*
 export
 models
@@ -9,3 +9,5 @@ results
 videos
 .DS_Store
 .env
+baseball-detection*
+merged_dataset
